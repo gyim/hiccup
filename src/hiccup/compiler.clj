@@ -1,7 +1,8 @@
 (ns hiccup.compiler
   "Internal functions for compilation."
   (:use hiccup.util)
-  (:import [clojure.lang IPersistentVector ISeq Named]))
+  (:import [clojure.lang IPersistentVector ISeq Named]
+           [hiccup.util SafeString]))
 
 (defn- xml-mode? []
   (#{:xml :xhtml} *html-mode*))
@@ -86,12 +87,19 @@
   ISeq
   (render-html [this]
     (apply str (map render-html this)))
-  Named
-  (render-html [this]
-    (name this))
-  Object
+  SafeString
   (render-html [this]
     (str this))
+  Named
+  (render-html [this]
+    (if (= *escaping* :auto)
+      (escape-html (name this))
+      (name this)))
+  Object
+  (render-html [this]
+    (if (= *escaping* :auto)
+      (escape-html (str this))
+      (str this)))
   nil
   (render-html [this]
     ""))

@@ -64,3 +64,21 @@ user=> (html [:ul
                  [:li x])])
 "<ul><li>1</li><li>2</li><li>3</li></ul>"
 ```
+
+Hiccup does not escape strings by default, but it can be enabled with the
+`:escaping :auto` option:
+
+```clojure
+user=> (html {:escaping :auto} [:p "<foo>"])
+"<p>&lt;foo&gt;</p>"
+```
+
+If auto escaping is enabled, partial templates can be created with the
+`:partial? true` option:
+
+```clojure
+user=> (let [li (html {:partial? true}  [:li "foo"])
+             ul (html {:escaping :auto} [:ul li])]
+         ul)
+"<ul><li>foo</li></ul>"
+```

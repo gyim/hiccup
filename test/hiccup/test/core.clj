@@ -1,6 +1,7 @@
 (ns hiccup.test.core
   (:use clojure.test
-        hiccup.core))
+        hiccup.core
+        hiccup.util))
 
 (deftest tag-names
   (testing "basic tags"
@@ -127,3 +128,26 @@
   (testing "laziness and binding scope"
     (is (= (html {:mode :sgml} [:html [:link] (list [:link])])
            "<html><link><link></html>"))))
+
+(deftest auto-escaping
+  (testing "manual escaping"
+    (is (= (html [:p "<i>foo</i>"]) "<p><i>foo</i></p>")))
+
+  (testing "auto escaping"
+    (is (= (html {:escaping :auto} [:ul [:li [:i "<foo>" :<bar>]]])
+           "<ul><li><i>&lt;foo&gt;&lt;bar&gt;</i></li></ul>"))
+    (is (= (let [x "<i>foo</i>"
+                 f (fn [x] [:i x])]
+             (html {:escaping :auto} [:p x (f "bar")]))
+           "<p>&lt;i&gt;foo&lt;/i&gt;<i>bar</i></p>"))
+    (is (= (html {:escaping :auto} [:ul [:li [:i "<foo>" :<bar>]]])
+           "<ul><li><i>&lt;foo&gt;&lt;bar&gt;</i></li></ul>")))
+  
+  (testing "auto escaping with safe strings"
+    (is (= (html {:escaping :auto} [:p (safe-str "<i>foo</i>")])
+           "<p><i>foo</i></p>")))
+
+  (testing "auto escaping with partial template"
+    (is (= (let [x (html {:partial? true} [:b "foo"])]
+             (html {:escaping :auto} [:p x])))
+        "<p><i>foo</i")))

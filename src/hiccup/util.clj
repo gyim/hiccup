@@ -8,6 +8,8 @@
 
 (def ^:dynamic *base-url* nil)
 
+(def ^:dynamic *escaping* :manual)
+
 (defmacro with-base-url
   "Sets a base URL that will be prepended onto relative URIs. Note that for this
   to work correctly, it needs to be placed outside the html macro."
@@ -61,6 +63,15 @@
     (replace ">"  "&gt;")
     (replace "\"" "&quot;")
     (replace "'" (if (= *html-mode* :sgml) "&#39;" "&apos;"))))
+
+(deftype SafeString [^String s]
+  Object
+  (^String toString [this] s))
+
+(defn safe-str
+  "Wraps a string to an object that will be pasted to HTML without escaping."
+  [s]
+  (SafeString. s))
 
 (def ^:dynamic *encoding* "UTF-8")
 
